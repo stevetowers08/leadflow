@@ -73,7 +73,7 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
     (person: RecentPerson) => (
       <div
         key={person.id}
-        className='group p-6 bg-white rounded-lg border border-border hover:border-primary/20 hover:shadow-md transition-all duration-200 cursor-pointer'
+        className='group p-6 bg-card rounded-lg border border-border hover:border-primary/20 hover:shadow-md transition-all duration-200 cursor-pointer'
         onClick={() => {
           setSelectedPersonId(person.id);
           setIsSlideOutOpen(true);
@@ -186,7 +186,7 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
         </div>
 
         {/* Reply Analytics Summary */}
-        <div className='mt-3 pt-3 border-t border-gray-100'>
+        <div className='mt-3 pt-3 border-t border-border'>
           <PersonReplyAnalytics
             person={{
               id: person.id,
@@ -213,9 +213,9 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
           <div className='space-y-3'>
             {[...Array(3)].map((_, i) => (
               <div key={i} className='p-4 bg-muted rounded-lg animate-pulse'>
-                <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
-                <div className='h-3 bg-gray-200 rounded w-1/2 mb-1'></div>
-                <div className='h-3 bg-gray-200 rounded w-2/3'></div>
+                <div className='h-4 bg-muted-foreground/20 rounded w-3/4 mb-2'></div>
+                <div className='h-3 bg-muted-foreground/20 rounded w-1/2 mb-1'></div>
+                <div className='h-3 bg-muted-foreground/20 rounded w-2/3'></div>
               </div>
             ))}
           </div>
@@ -242,7 +242,7 @@ export const RecentPeopleTabs: React.FC<RecentPeopleTabsProps> = ({
 
   return (
     <>
-      <Card className='bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-border'>
+      <Card className='bg-card shadow-sm hover:shadow-md transition-all duration-300 border border-border'>
         <CardHeader className='pb-4'>
           <CardTitle className='flex items-center gap-2 text-base font-medium text-foreground'>
             <div className='flex items-center justify-center w-8 h-8 rounded-lg bg-primary/5 border border-primary/10'>

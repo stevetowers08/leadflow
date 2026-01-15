@@ -40,6 +40,8 @@ import {
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { logger } from '@/utils/logger';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 export interface FloatingActionBarProps {
   selectedCount: number;
@@ -91,6 +93,7 @@ const FloatingActionBarComponent: React.FC<FloatingActionBarProps> = ({
   >([]);
   const [loadingWorkflows, setLoadingWorkflows] = useState(false);
   const [workflowError, setWorkflowError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const handleAction = useCallback(
     async (action: string, fn: () => Promise<void>) => {
@@ -213,62 +216,96 @@ const FloatingActionBarComponent: React.FC<FloatingActionBarProps> = ({
     <>
       {/* Floating Action Bar - mobile optimized */}
       <div
-        className='fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-2 fade-in duration-200 pb-[env(safe-area-inset-bottom)]'
+        className={cn(
+          'fixed left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-2 fade-in duration-200',
+          isMobile ? 'bottom-20' : 'bottom-4 sm:bottom-6',
+          'pb-[env(safe-area-inset-bottom)]'
+        )}
         role='toolbar'
         aria-label='Bulk actions toolbar'
       >
         <div className='rounded-xl shadow-xl border bg-background text-foreground px-3 py-1.5'>
           {/* Horizontal scroll container for mobile */}
-          <div className='flex items-center justify-center gap-2 overflow-x-auto scrollbar-hide'>
-            {/* Add to list */}
-            {campaigns.length > 0 && (
+          <div className='flex items-center justify-center gap-2 sm:gap-2 overflow-x-auto scrollbar-hide'>
+            {/* Add to campaign */}
+            {campaigns.length > 0 ? (
               <Button
                 variant='secondary'
-                size='default'
+                size={isMobile ? 'default' : 'default'}
                 onClick={() => setShowCampaignSelect(true)}
                 disabled={loading !== null}
-                className='touch-manipulation flex-shrink-0'
+                className={cn(
+                  'touch-manipulation flex-shrink-0',
+                  isMobile && 'h-12 min-w-[48px] px-3'
+                )}
+                title='Add to campaign'
               >
-                <ListPlus className='h-4 w-4' />
-                <span>Add to list</span>
+                <ListPlus className='h-5 w-5' />
+                {!isMobile && <span>Add to campaign</span>}
+              </Button>
+            ) : (
+              <Button
+                variant='secondary'
+                size={isMobile ? 'default' : 'default'}
+                disabled={true}
+                className={cn(
+                  'touch-manipulation flex-shrink-0 opacity-50',
+                  isMobile && 'h-12 min-w-[48px] px-3'
+                )}
+                title='No campaigns available. Create a campaign first.'
+              >
+                <ListPlus className='h-5 w-5' />
+                {!isMobile && <span>Add to campaign</span>}
               </Button>
             )}
 
             {/* Export CSV */}
             <Button
               variant='secondary'
-              size='default'
+              size={isMobile ? 'default' : 'default'}
               onClick={() => handleAction('export', onExport)}
               disabled={loading !== null}
-              className='touch-manipulation flex-shrink-0'
+              className={cn(
+                'touch-manipulation flex-shrink-0',
+                isMobile && 'h-12 min-w-[48px] px-3'
+              )}
+              title='Export'
             >
-              <Download className='h-4 w-4' />
-              <span>Export</span>
+              <Download className='h-5 w-5' />
+              {!isMobile && <span>Export</span>}
             </Button>
 
             {/* Delete */}
             <Button
               variant='destructive'
-              size='default'
+              size={isMobile ? 'default' : 'default'}
               onClick={() => setShowDeleteDialog(true)}
               disabled={loading !== null}
-              className='touch-manipulation flex-shrink-0'
+              className={cn(
+                'touch-manipulation flex-shrink-0',
+                isMobile && 'h-12 min-w-[48px] px-3'
+              )}
+              title='Delete'
             >
-              <Trash2 className='h-4 w-4' />
-              <span>Delete</span>
+              <Trash2 className='h-5 w-5' />
+              {!isMobile && <span>Delete</span>}
             </Button>
 
             {/* Clear selection */}
             {onClear && (
               <Button
                 variant='ghost'
-                size='default'
+                size={isMobile ? 'default' : 'default'}
                 onClick={onClear}
                 disabled={loading !== null}
-                className='touch-manipulation flex-shrink-0'
+                className={cn(
+                  'touch-manipulation flex-shrink-0',
+                  isMobile && 'h-12 min-w-[48px] px-3'
+                )}
+                title='Clear selection'
               >
-                <X className='h-4 w-4' />
-                <span>Clear</span>
+                <X className='h-5 w-5' />
+                {!isMobile && <span>Clear</span>}
               </Button>
             )}
           </div>

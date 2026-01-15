@@ -34,6 +34,8 @@ import { SlideOutPanel } from './SlideOutPanel';
 import { SlideOutGrid } from './SlideOutGrid';
 import { logger } from '@/utils/productionLogger';
 import { useRouter } from 'next/navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface CompanyDetailsSlideOutProps {
   companyId: string;
@@ -46,18 +48,61 @@ interface GridItem {
   value: React.ReactNode;
 }
 
+// Helper functions for company initials and colors
+const getCompanyInitials = (name: string): string => {
+  if (!name) return '?';
+  const words = name.trim().split(/\s+/);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+const getCompanyColor = (name: string): { bg: string; text: string } => {
+  // Generate consistent colors based on company name
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash % 360);
+  const bg = `hsl(${hue}, 70%, 50%)`;
+  const text = '#ffffff';
+  return { bg, text };
+};
+
+// Normalize logo URL - convert dark theme to light theme for better visibility
+const normalizeLogoUrl = (url: string | null | undefined): string | null => {
+  if (!url) return null;
+
+  // Convert Brandfetch dark theme to light theme for better visibility on light backgrounds
+  if (url.includes('cdn.brandfetch.io') && url.includes('theme/dark')) {
+    return url.replace('theme/dark', 'theme/light');
+  }
+
+  return url;
+};
+
 // Reusable company logo display component
 const CompanyLogoDisplay: React.FC<{ company: Company; size?: number }> = memo(
   ({ company, size = 24 }) => {
     const [imageError, setImageError] = useState(false);
 
     // Use cached logo_url if available, otherwise generate sync URL
-    const logoUrl =
+    // Normalize to use light theme for better visibility
+    const rawLogoUrl =
       company.logo_url?.trim() ||
       getCompanyLogoUrlSync(company.name, company.website || undefined);
+    const logoUrl = normalizeLogoUrl(rawLogoUrl);
 
-    // Generate fallback avatar URL
-    const fallbackUrl = `${API_URLS.UI_AVATARS}?name=${encodeURIComponent(company.name)}&background=random&size=${size}`;
+    // Generate fallback avatar URL with initials and consistent colors
+    const initials = getCompanyInitials(company.name);
+    const colors = getCompanyColor(company.name);
+    const fallbackUrl = API_URLS.UI_AVATARS(
+      initials,
+      size,
+      colors.bg,
+      colors.text
+    );
 
     const handleImageError = useCallback(() => {
       setImageError(true);
@@ -66,20 +111,30 @@ const CompanyLogoDisplay: React.FC<{ company: Company; size?: number }> = memo(
     return (
       <div className='flex items-center gap-2'>
         {!imageError && logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={company.name}
-            className='rounded flex-shrink-0 object-contain'
+          <div
+            className='rounded flex-shrink-0 bg-muted/50 border border-border/50 flex items-center justify-center overflow-hidden'
             style={{ width: `${size}px`, height: `${size}px` }}
-            onError={handleImageError}
-          />
+          >
+            <img
+              src={logoUrl}
+              alt={company.name}
+              className='w-full h-full object-contain p-0.5'
+              style={{ maxWidth: '100%', maxHeight: '100%' }}
+              onError={handleImageError}
+            />
+          </div>
         ) : (
-          <img
-            src={fallbackUrl}
-            alt={company.name}
-            className='rounded flex-shrink-0'
+          <div
+            className='rounded flex-shrink-0 bg-muted/50 border border-border/50 flex items-center justify-center overflow-hidden'
             style={{ width: `${size}px`, height: `${size}px` }}
-          />
+          >
+            <img
+              src={fallbackUrl}
+              alt={company.name}
+              className='w-full h-full object-contain'
+              style={{ maxWidth: '100%', maxHeight: '100%' }}
+            />
+          </div>
         )}
         <span className='font-medium'>{company.name}</span>
       </div>
@@ -95,39 +150,52 @@ const CompanyLogoHeader: React.FC<{ company: Company }> = memo(
     const [imageError, setImageError] = useState(false);
 
     // Use cached logo_url if available, otherwise generate sync URL
-    const logoUrl =
+    // Normalize to use light theme for better visibility
+    const rawLogoUrl =
       company.logo_url?.trim() ||
       getCompanyLogoUrlSync(company.name, company.website || undefined);
+    const logoUrl = normalizeLogoUrl(rawLogoUrl);
 
-    // Generate fallback avatar URL - size to match logo
-    const fallbackUrl = `${API_URLS.UI_AVATARS}?name=${encodeURIComponent(company.name)}&background=random&size=40`;
+    // Generate fallback avatar URL with initials and consistent colors
+    const initials = getCompanyInitials(company.name);
+    const colors = getCompanyColor(company.name);
+    const fallbackUrl = API_URLS.UI_AVATARS(
+      initials,
+      40,
+      colors.bg,
+      colors.text
+    );
 
     const handleImageError = useCallback(() => {
       setImageError(true);
     }, []);
 
     return (
-      <div className='flex items-center gap-3'>
+      <div className='flex items-center gap-3 h-full'>
         {!imageError && logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={company.name}
-            className='w-10 h-10 rounded-lg flex-shrink-0 object-contain'
-            onError={handleImageError}
-          />
+          <div className='w-10 h-10 rounded-lg flex-shrink-0 bg-muted/50 border border-border/50 flex items-center justify-center overflow-hidden'>
+            <img
+              src={logoUrl}
+              alt={company.name}
+              className='w-full h-full object-contain p-1'
+              onError={handleImageError}
+            />
+          </div>
         ) : (
-          <img
-            src={fallbackUrl}
-            alt={company.name}
-            className='w-10 h-10 rounded-lg flex-shrink-0'
-          />
+          <div className='w-10 h-10 rounded-lg flex-shrink-0 bg-muted/50 border border-border/50 flex items-center justify-center overflow-hidden'>
+            <img
+              src={fallbackUrl}
+              alt={company.name}
+              className='w-full h-full object-contain'
+            />
+          </div>
         )}
-        <div className='min-w-0 flex-1'>
-          <h2 className='text-lg font-semibold text-foreground truncate leading-tight'>
+        <div className='min-w-0 flex-1 flex flex-col justify-center'>
+          <h2 className='text-base md:text-lg font-semibold text-foreground truncate leading-tight'>
             {company.name}
           </h2>
           {company.industry && (
-            <p className='text-sm text-muted-foreground truncate leading-tight'>
+            <p className='text-xs md:text-sm text-muted-foreground truncate leading-tight'>
               {company.industry}
             </p>
           )}
@@ -142,6 +210,7 @@ CompanyLogoHeader.displayName = 'CompanyLogoHeader';
 const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
   memo(({ companyId, isOpen, onClose }) => {
     const router = useRouter();
+    const isMobile = useIsMobile();
     const [company, setCompany] = useState<Company | null>(null);
     const [relatedLeads, setRelatedLeads] = useState<Lead[]>([]);
     const [companyShows, setCompanyShows] = useState<
@@ -416,18 +485,18 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
 
         <div className='flex-1 overflow-y-auto'>
           {activeTab === 'overview' && (
-            <div className='p-6 space-y-6'>
+            <div className={cn('space-y-4', isMobile ? 'p-3' : 'p-4')}>
               <SlideOutGrid items={companyDetailsItems} />
 
               {/* Shows Section */}
-              <div className='mt-6 pt-6 border-t border-border'>
-                <h3 className='text-sm font-semibold text-foreground mb-4 flex items-center gap-2'>
+              <div className='mt-4 pt-4 border-t border-border'>
+                <h3 className='text-sm font-semibold text-foreground mb-3 flex items-center gap-2'>
                   <Calendar className='h-4 w-4' />
                   Shows
                 </h3>
 
                 {/* Add Show */}
-                <div className='flex gap-2 mb-4'>
+                <div className='flex gap-2 mb-3'>
                   <div className='flex-1'>
                     <ShowSelector
                       value={selectedShowId}
@@ -438,7 +507,10 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
                   <Button
                     onClick={handleAddShow}
                     disabled={!selectedShowId}
-                    size='sm'
+                    size={isMobile ? 'default' : 'sm'}
+                    className={cn(
+                      isMobile && 'h-12 min-w-[48px] px-4 touch-manipulation'
+                    )}
                   >
                     Add
                   </Button>
@@ -454,10 +526,10 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
                     {companyShows.map(show => (
                       <div
                         key={show.id}
-                        className='flex items-center justify-between p-2 bg-muted rounded-md border border-border'
+                        className='flex items-center justify-between p-2.5 bg-muted rounded-md border border-border'
                       >
-                        <div className='flex-1'>
-                          <div className='text-sm font-medium text-foreground'>
+                        <div className='flex-1 min-w-0'>
+                          <div className='text-sm font-medium text-foreground truncate'>
                             {show.name}
                           </div>
                           {show.start_date && (
@@ -470,11 +542,16 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
                         </div>
                         <Button
                           variant='ghost'
-                          size='sm'
+                          size={isMobile ? 'default' : 'sm'}
                           onClick={() => handleRemoveShow(show.id)}
-                          className='h-8 w-8 p-0'
+                          className={cn(
+                            isMobile
+                              ? 'h-12 w-12 min-w-[48px] min-h-[48px] p-0 touch-manipulation ml-2'
+                              : 'h-8 w-8 p-0 ml-2'
+                          )}
+                          title='Remove show'
                         >
-                          <X className='h-4 w-4' />
+                          <X className={cn(isMobile ? 'h-5 w-5' : 'h-4 w-4')} />
                         </Button>
                       </div>
                     ))}
@@ -485,22 +562,22 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
           )}
 
           {activeTab === 'leads' && (
-            <div className='p-6 space-y-4'>
+            <div className={cn('space-y-3', isMobile ? 'p-3' : 'p-4')}>
               {relatedLeads.length === 0 ? (
-                <div className='text-center py-8 text-muted-foreground'>
-                  <Users className='h-12 w-12 mx-auto mb-2 opacity-50' />
-                  <p>No leads found for this company</p>
+                <div className='text-center py-6 text-muted-foreground'>
+                  <Users className='h-10 w-10 mx-auto mb-2 opacity-50' />
+                  <p className='text-sm'>No leads found for this company</p>
                 </div>
               ) : (
-                <div className='space-y-4'>
+                <div className='space-y-2'>
                   {relatedLeads.map(lead => (
                     <div
                       key={lead.id}
-                      className='p-4 border rounded-lg hover:bg-accent dark:hover:bg-muted/60 transition-colors'
+                      className='p-2.5 border rounded-lg hover:bg-accent dark:hover:bg-muted/60 transition-colors'
                     >
-                      <div className='flex items-center justify-between gap-3 mb-3'>
+                      <div className='flex items-center justify-between gap-2 mb-2'>
                         <div
-                          className='flex-1 cursor-pointer'
+                          className='flex-1 cursor-pointer touch-manipulation'
                           onClick={() => handleLeadClick(lead.id)}
                         >
                           <div className='font-medium'>
@@ -508,12 +585,12 @@ const CompanyDetailsSlideOutComponent: React.FC<CompanyDetailsSlideOutProps> =
                             {!lead.first_name && !lead.last_name && 'Unknown'}
                           </div>
                           {lead.job_title && (
-                            <div className='text-sm text-muted-foreground'>
+                            <div className='text-xs text-muted-foreground'>
                               {lead.job_title}
                             </div>
                           )}
                           {lead.email && (
-                            <div className='text-xs text-muted-foreground'>
+                            <div className='text-[10px] text-muted-foreground'>
                               {lead.email}
                             </div>
                           )}

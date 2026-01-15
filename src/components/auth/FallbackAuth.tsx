@@ -126,14 +126,14 @@ export const FallbackAuth: React.FC = () => {
               By signing in, you agree to our{' '}
               <a
                 href='#'
-                className='text-sidebar-primary hover:text-sidebar-primary/80 font-medium underline-offset-4 hover:underline'
+                className='text-foreground hover:text-foreground/80 font-medium underline-offset-4 hover:underline'
               >
                 Terms of Service
               </a>{' '}
               and{' '}
               <a
                 href='#'
-                className='text-sidebar-primary hover:text-sidebar-primary/80 font-medium underline-offset-4 hover:underline'
+                className='text-foreground hover:text-foreground/80 font-medium underline-offset-4 hover:underline'
               >
                 Privacy Policy
               </a>

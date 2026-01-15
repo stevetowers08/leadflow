@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SlideOutPanelProps {
   isOpen: boolean;
@@ -28,9 +29,12 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
   customHeader,
   className,
 }) => {
-  // Calculate width - simple and explicit
-  const panelWidth =
-    width === 'wide'
+  const isMobile = useIsMobile();
+
+  // Calculate width - full width on mobile, percentage on desktop
+  const panelWidth = isMobile
+    ? '100%'
+    : width === 'wide'
       ? 'min(85vw, calc(100vw - var(--sidebar-width, 14rem)))'
       : width === 'medium'
         ? 'min(75vw, calc(100vw - var(--sidebar-width, 14rem)))'
@@ -78,8 +82,10 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               'bg-background/80 backdrop-blur-sm z-[10000]'
             )}
             style={{
-              // Use CSS variable for sidebar width, fallback to 14rem (expanded)
-              left: 'var(--sidebar-width, 14rem)',
+              // Mobile: full screen overlay, Desktop: respect sidebar
+              ...(isMobile
+                ? { left: 0 }
+                : { left: 'var(--sidebar-width, 14rem)' }),
             }}
             onClick={onClose}
           />
@@ -105,35 +111,43 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               className
             )}
             style={{
-              // RIGHT ALIGNED - no left positioning
-              right: 0,
-              // Width constrained to never cover sidebar
-              width: panelWidth,
-              // Ensure no left positioning
-              left: 'auto',
+              // Mobile: full width, Desktop: calculated width
+              ...(isMobile
+                ? { width: '100%', left: 0, right: 0 }
+                : {
+                    right: 0,
+                    width: panelWidth,
+                    left: 'auto',
+                  }),
               boxShadow: '-2px 0 15px rgba(0, 0, 0, 0.1)',
             }}
           >
-            {/* Header - compact padding, same text size */}
-            <div className='flex items-center justify-between px-4 py-2 md:px-6 md:py-2.5 border-b border-border flex-shrink-0 pt-[max(0.5rem,env(safe-area-inset-top))] md:pt-2.5'>
-              <div className='flex-1 min-w-0'>
+            {/* Header - compact padding, vertically centered */}
+            <div
+              className='flex items-center justify-between px-3 md:px-4 border-b border-border flex-shrink-0'
+              style={{
+                paddingTop: `max(0.5rem, env(safe-area-inset-top, 0.5rem))`,
+                paddingBottom: `max(0.5rem, env(safe-area-inset-bottom, 0px))`,
+              }}
+            >
+              <div className='flex-1 min-w-0 flex items-center'>
                 {customHeader || (
-                  <>
-                    <h2 className='text-base md:text-lg font-semibold text-foreground truncate'>
+                  <div className='flex items-center gap-2'>
+                    <h2 className='text-base md:text-lg font-semibold text-foreground truncate leading-tight'>
                       {title}
                     </h2>
                     {subtitle && (
-                      <p className='text-xs md:text-sm text-muted-foreground mt-0.5 truncate'>
+                      <p className='text-xs md:text-sm text-muted-foreground truncate leading-tight'>
                         {subtitle}
                       </p>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
-              {/* Close button - more visible, minimum 44x44 touch target for mobile */}
+              {/* Close button - minimum 44x44 touch target for mobile */}
               <button
                 onClick={onClose}
-                className='ml-2 md:ml-4 p-2 md:p-1.5 min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent dark:hover:bg-muted/60 active:bg-accent/80 dark:active:bg-muted/70 rounded-lg transition-colors flex-shrink-0 touch-manipulation'
+                className='ml-2 md:ml-3 p-2 md:p-1 min-w-[44px] min-h-[44px] md:min-w-[32px] md:min-h-[32px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent dark:hover:bg-muted/60 active:bg-accent/80 dark:active:bg-muted/70 rounded-lg transition-colors flex-shrink-0 touch-manipulation'
                 aria-label='Close panel'
                 title='Close'
               >
@@ -141,10 +155,10 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               </button>
             </div>
 
-            {/* Content - responsive padding with momentum scrolling */}
+            {/* Content - compact padding with momentum scrolling */}
             <div
               className={cn(
-                'flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 md:px-6 md:pb-6 slide-out-scroll',
+                'flex-1 overflow-y-auto overflow-x-hidden px-3 pb-3 md:px-4 md:pb-4 slide-out-scroll',
                 // iOS momentum scrolling
                 '-webkit-overflow-scrolling-touch',
                 // Smooth scroll behavior
@@ -157,9 +171,9 @@ export const SlideOutPanel: React.FC<SlideOutPanelProps> = ({
               {children}
             </div>
 
-            {/* Footer - responsive with safe area */}
+            {/* Footer - compact with safe area */}
             {footer && (
-              <div className='px-4 py-3 md:px-6 md:py-4 border-t border-border bg-muted flex-shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]'>
+              <div className='px-3 py-2 md:px-4 md:py-3 border-t border-border bg-muted flex-shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]'>
                 {footer}
               </div>
             )}

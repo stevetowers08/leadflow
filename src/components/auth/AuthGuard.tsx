@@ -43,7 +43,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     return (
       <div className='min-h-screen flex items-center justify-center p-4'>
         <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-sidebar-primary mx-auto mb-4'></div>
+          <Loader2 className='h-12 w-12 animate-spin text-primary mx-auto mb-4' />
           <p className='text-sm text-muted-foreground'>Loading...</p>
         </div>
       </div>
@@ -54,17 +54,13 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     <>
       <div className='min-h-screen flex items-center justify-center p-4'>
         <div className='w-full max-w-md'>
-          <Card className='bg-white shadow-lg border-0 rounded-xl'>
+          <Card className='shadow-lg border-0 rounded-xl'>
             <CardHeader className='text-center pb-6'>
-              <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sidebar-primary/10'>
-                <Lock className='h-6 w-6 text-sidebar-primary' />
+              <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted'>
+                <Lock className='h-6 w-6 text-muted-foreground' />
               </div>
-              <CardTitle className='text-xl font-semibold text-foreground'>
-                {title}
-              </CardTitle>
-              <CardDescription className='text-muted-foreground'>
-                {description}
-              </CardDescription>
+              <CardTitle className='text-xl font-semibold'>{title}</CardTitle>
+              <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent className='px-8 pb-8'>
               <div className='space-y-4'>
@@ -75,10 +71,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
                   </p>
                 </div>
 
-                <Button
-                  onClick={handleSignInClick}
-                  className='w-full h-10 bg-sidebar-primary hover:bg-sidebar-primary/90 text-white font-medium rounded-md'
-                >
+                <Button onClick={handleSignInClick} className='w-full h-10'>
                   Sign In to Continue
                 </Button>
 

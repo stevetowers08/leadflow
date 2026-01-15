@@ -306,7 +306,7 @@ function CompanyChipComponent({ company, className }: CompanyChipProps) {
           <div
             className={cn(
               'h-5 w-5 rounded',
-              !isFallback && 'bg-white',
+              !isFallback && 'bg-card',
               showPrevLogo ? 'relative z-10' : 'absolute inset-0'
             )}
           >
@@ -340,7 +340,7 @@ function CompanyChipComponent({ company, className }: CompanyChipProps) {
           !isLoaded &&
           !imageError &&
           !showPrevLogo && (
-            <div className='absolute inset-0 rounded bg-gray-200 dark:bg-gray-700 animate-pulse' />
+            <div className='absolute inset-0 rounded bg-muted animate-pulse' />
           )}
       </div>
       <span className='truncate text-foreground'>{company.name}</span>

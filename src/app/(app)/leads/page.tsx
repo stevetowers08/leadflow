@@ -432,7 +432,12 @@ export default function LeadsPage() {
       },
       {
         key: 'job_title',
-        label: 'Position',
+        label: (
+          <div className='flex items-center gap-1.5'>
+            <span>Position</span>
+            <Zap className='h-3.5 w-3.5 text-yellow-500' />
+          </div>
+        ),
         width: '200px',
         render: (_, lead) => {
           return (
@@ -869,7 +874,7 @@ export default function LeadsPage() {
             variant='outline'
             size='sm'
             onClick={() => setShowImportDialog(true)}
-            className='h-10 w-10 p-0 touch-manipulation'
+            className='h-10 w-10 p-0 touch-manipulation shadow-sm hover:shadow-md border-border'
             title='Import CSV'
           >
             <Upload className='h-4 w-4' />
@@ -879,7 +884,7 @@ export default function LeadsPage() {
             size='sm'
             onClick={handleExport}
             disabled={isExporting || leads.length === 0}
-            className='h-10 w-10 p-0 touch-manipulation'
+            className='h-10 w-10 p-0 touch-manipulation shadow-sm hover:shadow-md border-border'
             title='Export CSV'
           >
             <Download className='h-4 w-4' />

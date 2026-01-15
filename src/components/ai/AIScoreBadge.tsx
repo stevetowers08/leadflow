@@ -70,11 +70,11 @@ export function AIScoreBadge({
 
   const getScoreColor = (scoreValue: number) => {
     if (scoreValue >= 85)
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    if (scoreValue >= 70) return 'bg-blue-100 text-primary border-primary/20';
+      return 'bg-success-light text-success-dark border-success/20';
+    if (scoreValue >= 70) return 'bg-info-light text-primary border-primary/20';
     if (scoreValue >= 50)
-      return 'bg-yellow-100 text-warning border-yellow-200';
-    return 'bg-orange-100 text-orange-800 border-orange-200';
+      return 'bg-warning-light text-warning-dark border-warning/20';
+    return 'bg-warning-light text-warning-dark border-warning/20';
   };
 
   const getConfidenceColor = (confidence: number) => {

@@ -56,6 +56,13 @@ import { GridItem, SlideOutGrid } from './SlideOutGrid';
 import { SlideOutPanel } from './SlideOutPanel';
 import { SlideOutSection } from './SlideOutSection';
 import { logger } from '@/utils/productionLogger';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 // Helper to get company initials
 const getCompanyInitials = (name: string): string => {
@@ -159,6 +166,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
   ({ leadId, isOpen, onClose, onUpdate, initialTab }) => {
     const router = useRouter();
     const { user } = useAuth();
+    const isMobile = useIsMobile();
     const [lead, setLead] = useState<Lead | null>(null);
     const [company, setCompany] = useState<Company | null>(null);
     const [otherLeads, setOtherLeads] = useState<Lead[]>([]);
@@ -171,6 +179,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState(initialTab ?? 'overview');
     const [showCampaignSelect, setShowCampaignSelect] = useState(false);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(true);
     const { toast } = useToast();
 
     // Sync tab when initialTab changes
@@ -802,36 +811,41 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
         width='wide'
         className='pb-0'
         customHeader={
-          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3 sm:gap-4'>
+          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-1.5 sm:gap-3'>
             {/* Lead info - stacks on mobile */}
-            <div className='flex items-center gap-3 sm:gap-4 min-w-0'>
-              <div className='w-10 h-10 sm:w-10 sm:h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-border'>
-                <User className='h-5 w-5 text-muted-foreground' />
+            <div className='flex items-center gap-2 sm:gap-3 min-w-0'>
+              <div className='w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-border'>
+                <User className='h-4 w-4 sm:h-4 sm:w-4 text-muted-foreground' />
               </div>
-              <div className='flex-1 min-w-0'>
-                <h2 className='text-base sm:text-lg font-semibold text-foreground truncate'>
-                  {leadFullName}
+              <div className='flex-1 min-w-0 flex flex-col justify-center py-0'>
+                <h2 className='text-sm sm:text-base font-semibold text-foreground truncate leading-tight'>
+                  {leadFullName || 'Unknown Lead'}
                 </h2>
-                <p className='text-xs sm:text-sm text-muted-foreground truncate'>
-                  {lead.job_title || lead.company || 'Lead Information'}
+                <p className='text-xs text-muted-foreground truncate leading-tight mt-0.5'>
+                  {lead?.job_title || lead?.company || 'Lead Information'}
                 </p>
               </div>
             </div>
             {/* Actions - horizontal scroll on mobile with proper touch targets */}
-            <div className='flex items-center gap-2 flex-shrink-0 overflow-x-auto pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-hide'>
+            <div className='flex items-center gap-1.5 flex-shrink-0 overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-hide'>
               {campaigns.length > 0 && (
                 <Button
-                  size='sm'
+                  size={isMobile ? 'default' : 'sm'}
                   variant='ghost'
                   onClick={e => {
                     e.preventDefault();
                     e.stopPropagation();
                     setShowCampaignSelect(true);
                   }}
-                  className='h-10 w-10 sm:h-8 sm:w-8 p-0 border border-border dark:border-border/70 rounded-md hover:border-border/80 dark:hover:border-border text-muted-foreground dark:text-foreground/70 hover:text-foreground dark:hover:text-foreground hover:bg-muted dark:hover:bg-muted/80 active:bg-muted/80 dark:active:bg-muted/90 touch-manipulation flex-shrink-0 transition-colors'
+                  className={cn(
+                    'border border-border dark:border-border/70 rounded-md hover:border-border/80 dark:hover:border-border text-muted-foreground dark:text-foreground/70 hover:text-foreground dark:hover:text-foreground hover:bg-muted dark:hover:bg-muted/80 active:bg-muted/80 dark:active:bg-muted/90 touch-manipulation flex-shrink-0 transition-colors',
+                    isMobile
+                      ? 'h-12 w-12 min-w-[48px] min-h-[48px] p-0'
+                      : 'h-8 w-8 p-0'
+                  )}
                   title='Add to workflow'
                 >
-                  <ListPlus className='h-4 w-4' />
+                  <ListPlus className={cn(isMobile ? 'h-5 w-5' : 'h-4 w-4')} />
                 </Button>
               )}
             </div>
@@ -839,11 +853,11 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
         }
       >
         {/* Main container - single column on mobile, two columns on lg+ */}
-        <div className='flex flex-col lg:flex-row gap-0 h-full -mx-4 md:-mx-6'>
+        <div className='flex flex-col lg:flex-row gap-0 h-full -mx-3 md:-mx-4'>
           {/* Main Content Column - full width on mobile, flex on desktop */}
           <section className='flex-1 min-w-0 flex flex-col overflow-hidden m-0 p-0 order-2 lg:order-1'>
             {/* Tabs - horizontal scroll on mobile for touch */}
-            <div className='pt-3 pb-3 px-4 md:pl-6 md:pr-0 flex-shrink-0 overflow-x-auto overflow-y-visible scrollbar-hide'>
+            <div className='pt-2 pb-2 px-3 md:pl-4 md:pr-0 flex-shrink-0 overflow-x-auto overflow-y-visible scrollbar-hide'>
               <TabNavigation
                 tabs={tabOptions}
                 activeTab={activeTab}
@@ -854,24 +868,24 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               />
             </div>
 
-            {/* Tab Content - responsive padding */}
+            {/* Tab Content - compact padding */}
             <div className='flex-1 overflow-y-auto overflow-x-hidden select-text m-0 p-0 overscroll-behavior-y-contain'>
               {activeTab === 'overview' && (
-                <div className='space-y-4 px-4 md:px-6 pb-8'>
+                <div className='space-y-3 px-3 md:px-4 pb-4'>
                   <div className='w-full border-t border-border'></div>
 
                   {/* Campaign Enrollment */}
                   {enrolledCampaigns.length > 0 && (
-                    <div className='mt-8 mb-24'>
+                    <div className='mt-4 mb-4'>
                       <SlideOutSection title='Campaigns'>
-                        <div className='space-y-2'>
+                        <div className='space-y-1.5'>
                           {enrolledCampaigns.map(campaign => (
                             <div
                               key={campaign.id}
-                              className='flex items-center gap-2 p-2 bg-muted rounded-md border border-border'
+                              className='flex items-center gap-1.5 p-1.5 bg-muted rounded-md border border-border'
                             >
-                              <ListPlus className='h-4 w-4 text-muted-foreground' />
-                              <span className='text-sm text-foreground flex-1'>
+                              <ListPlus className='h-3.5 w-3.5 text-muted-foreground' />
+                              <span className='text-xs text-foreground flex-1'>
                                 {campaign.name}
                               </span>
                               <StatusBadge
@@ -893,9 +907,9 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
                   {/* AI Summary */}
                   {lead.ai_summary && (
-                    <div className='mt-8 mb-24'>
+                    <div className='mt-4 mb-4'>
                       <SlideOutSection title='AI Summary'>
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
+                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-2.5'>
                           {lead.ai_summary}
                         </div>
                       </SlideOutSection>
@@ -904,9 +918,9 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
                   {/* Notes */}
                   {lead.notes && (
-                    <div className='mt-8 mb-24'>
+                    <div className='mt-4 mb-4'>
                       <SlideOutSection title='Notes'>
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
+                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-2.5'>
                           {lead.notes}
                         </div>
                       </SlideOutSection>
@@ -915,7 +929,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
                   {/* Scan Image */}
                   {lead.scan_image_url && (
-                    <div className='mt-8 mb-24'>
+                    <div className='mt-4 mb-4'>
                       <SlideOutSection title='Business Card Scan'>
                         <div className='flex items-center gap-2'>
                           <ImageIcon className='h-4 w-4 text-muted-foreground' />
@@ -934,39 +948,39 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
 
                   {/* Company Details */}
                   {company && (
-                    <div className='mt-12 mb-24'>
+                    <div className='mt-4 mb-4'>
                       <SlideOutSection title='Company'>
                         <div className='mt-2'>
                           <SlideOutGrid items={companyDetailsItems} />
                         </div>
                         {company.score_reason && (
-                          <div className='mt-6'>
-                            <div className='p-4 bg-primary/10 rounded-lg border border-primary/20'>
-                              <h5 className='text-sm font-semibold text-foreground mb-2'>
+                          <div className='mt-3'>
+                            <div className='p-3 bg-primary/10 rounded-lg border border-primary/20'>
+                              <h5 className='text-xs font-semibold text-foreground mb-1.5'>
                                 Company Analysis
                               </h5>
-                              <p className='text-sm text-primary leading-relaxed'>
+                              <p className='text-xs text-primary leading-relaxed'>
                                 {company.score_reason}
                               </p>
                             </div>
                           </div>
                         )}
                         {otherLeads.length > 0 && (
-                          <div className='mt-8'>
+                          <div className='mt-4'>
                             <SlideOutSection
                               title={`Other Company Leads (${otherLeads.length})`}
                             >
-                              <div className='space-y-3'>
+                              <div className='space-y-2'>
                                 {otherLeads.map(otherLead => (
                                   <div
                                     key={otherLead.id}
                                     onClick={() =>
                                       handleLeadClick(otherLead.id)
                                     }
-                                    className='flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:bg-muted/80 dark:hover:bg-muted/60 transition-colors cursor-pointer'
+                                    className='flex items-center gap-2 p-2 bg-muted rounded-lg border border-border hover:bg-muted/80 dark:hover:bg-muted/60 transition-colors cursor-pointer touch-manipulation'
                                   >
-                                    <div className='w-10 h-10 bg-muted rounded-full flex items-center justify-center flex-shrink-0 border border-border'>
-                                      <User className='h-5 w-5 text-muted-foreground' />
+                                    <div className='w-8 h-8 bg-muted rounded-full flex items-center justify-center flex-shrink-0 border border-border'>
+                                      <User className='h-4 w-4 text-muted-foreground' />
                                     </div>
                                     <div className='flex-1 min-w-0'>
                                       <div className='font-medium text-sm text-foreground truncate'>
@@ -995,11 +1009,11 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               )}
 
               {activeTab === 'activity' && (
-                <div className='flex flex-col px-4 md:px-6'>
-                  <div className='mt-6 mb-8'>
+                <div className='flex flex-col px-3 md:px-4'>
+                  <div className='mt-3 mb-4'>
                     <SlideOutSection title='Activity'>
                       <div className='space-y-2 select-text overflow-x-hidden'>
-                        <div className='text-center py-8 text-muted-foreground text-sm'>
+                        <div className='text-center py-6 text-muted-foreground text-sm'>
                           No activity yet
                         </div>
                       </div>
@@ -1009,11 +1023,11 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
               )}
 
               {activeTab === 'ai' && (
-                <div className='flex flex-col px-4 md:px-6'>
+                <div className='flex flex-col px-3 md:px-4'>
                   {lead.ai_icebreaker && (
-                    <div className='mt-6 mb-8'>
+                    <div className='mt-3 mb-4'>
                       <SlideOutSection title='AI Icebreaker'>
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
+                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-2.5'>
                           {lead.ai_icebreaker}
                         </div>
                       </SlideOutSection>
@@ -1021,9 +1035,9 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   )}
 
                   {lead.ai_summary && (
-                    <div className='mt-6 mb-8'>
+                    <div className='mt-3 mb-4'>
                       <SlideOutSection title='AI Summary'>
-                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-3'>
+                        <div className='text-sm text-foreground whitespace-pre-wrap leading-relaxed bg-muted border border-border rounded-md p-2.5'>
                           {lead.ai_summary}
                         </div>
                       </SlideOutSection>
@@ -1031,7 +1045,7 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
                   )}
 
                   {!lead.ai_icebreaker && !lead.ai_summary && (
-                    <div className='mt-6 mb-12'>
+                    <div className='mt-3 mb-6'>
                       <SlideOutSection title='AI Messages'>
                         <div className='text-sm text-muted-foreground'>
                           No AI messages available
@@ -1047,252 +1061,273 @@ const LeadDetailsSlideOutComponent: React.FC<LeadDetailsSlideOutProps> = memo(
           {/* Right Column - Sidebar (shows as collapsible card on mobile, sidebar on desktop) */}
           <div className='w-full lg:w-80 flex-shrink-0 lg:border-l border-border flex flex-col lg:h-full overflow-hidden order-1 lg:order-2 border-b lg:border-b-0'>
             <div className='flex-1 flex flex-col lg:overflow-y-auto'>
-              <div className='px-4 md:px-6 py-4 lg:pt-6'>
-                <div className='mb-3 lg:mb-4'>
-                  <button className='flex items-center gap-2 w-full text-left touch-manipulation'>
-                    <ChevronDown className='h-4 w-4 text-muted-foreground' />
-                    <h3 className='text-sm lg:text-base font-semibold text-foreground'>
-                      Lead Details
-                    </h3>
-                  </button>
-                </div>
-                {/* Details grid - compact on mobile, spacious on desktop */}
-                <div className='space-y-2 lg:space-y-3'>
-                  {/* Name */}
-                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                    <User className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        Name
-                      </span>
-                      <span className='text-sm text-foreground font-medium text-right truncate'>
-                        {leadFullName}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Company */}
-                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                    <Building2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        Company
-                      </span>
-                      <button
-                        onClick={() =>
-                          company?.id && handleCompanyClick(company.id)
-                        }
-                        className='flex items-center gap-2 text-right hover:underline active:opacity-70 touch-manipulation min-w-0'
-                        title='View company'
-                      >
-                        {company ? (
-                          <CompanyLogoImage company={company} size={16} />
-                        ) : (
-                          <Building2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+              <div className={cn('py-3 lg:pt-4', isMobile ? 'px-3' : 'px-4')}>
+                <Collapsible
+                  open={isDetailsOpen}
+                  onOpenChange={setIsDetailsOpen}
+                >
+                  <CollapsibleTrigger asChild>
+                    <button
+                      className={cn(
+                        'flex items-center gap-2 w-full text-left touch-manipulation mb-3 lg:mb-4',
+                        isMobile && 'min-h-[44px]'
+                      )}
+                    >
+                      <ChevronDown
+                        className={cn(
+                          'h-4 w-4 text-muted-foreground transition-transform duration-200',
+                          isDetailsOpen && 'rotate-180'
                         )}
-                        <span className='text-sm text-foreground truncate'>
-                          {lead?.company || company?.name || '-'}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
+                      />
+                      <h3 className='text-sm lg:text-base font-semibold text-foreground'>
+                        Lead Details
+                      </h3>
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    {/* Details grid */}
+                    <div className='space-y-2 lg:space-y-3'>
+                      {/* Name */}
+                      <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                        <User className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                        <div className='flex-1 flex items-center justify-between gap-2 lg:gap-3 min-w-0'>
+                          <span className='text-xs text-muted-foreground flex-shrink-0'>
+                            Name
+                          </span>
+                          <span className='text-sm text-foreground font-medium text-right truncate'>
+                            {leadFullName}
+                          </span>
+                        </div>
+                      </div>
 
-                  {/* Email - larger touch target on mobile */}
-                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                    <Mail className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        Email
-                      </span>
-                      {lead?.email ? (
-                        <a
-                          href={`mailto:${lead.email}`}
-                          className='text-sm text-primary hover:text-primary active:opacity-70 underline text-right truncate touch-manipulation py-1'
-                        >
-                          {lead.email}
-                        </a>
-                      ) : (
-                        <span className='text-sm text-muted-foreground text-right'>
-                          -
-                        </span>
+                      {/* Company */}
+                      <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                        <Building2 className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                        <div className='flex-1 flex items-center justify-between gap-2 lg:gap-3 min-w-0'>
+                          <span className='text-xs text-muted-foreground flex-shrink-0'>
+                            Company
+                          </span>
+                          {company ? (
+                            <button
+                              onClick={() => handleCompanyClick(company.id)}
+                              className={cn(
+                                'flex items-center gap-1.5 text-right hover:underline active:opacity-70 touch-manipulation min-w-0',
+                                isMobile && 'min-h-[44px] px-2 -mx-2'
+                              )}
+                              title='View company'
+                            >
+                              <CompanyLogoImage company={company} size={16} />
+                              <span className='text-sm text-foreground truncate'>
+                                {company.name}
+                              </span>
+                            </button>
+                          ) : (
+                            <span className='text-sm text-foreground truncate'>
+                              {lead?.company || '-'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Email - larger touch target on mobile */}
+                      <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                        <Mail className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                        <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                          <span className='text-xs text-muted-foreground flex-shrink-0'>
+                            Email
+                          </span>
+                          {lead?.email ? (
+                            <a
+                              href={`mailto:${lead.email}`}
+                              className='text-sm text-primary hover:text-primary active:opacity-70 underline text-right truncate touch-manipulation py-1'
+                            >
+                              {lead.email}
+                            </a>
+                          ) : (
+                            <span className='text-sm text-muted-foreground text-right'>
+                              -
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Phone - larger touch target on mobile */}
+                      <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                        <Phone className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                        <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                          <span className='text-xs text-muted-foreground flex-shrink-0'>
+                            Phone
+                          </span>
+                          {lead?.phone ? (
+                            <a
+                              href={`tel:${lead.phone}`}
+                              className='text-sm text-primary hover:text-primary active:opacity-70 underline text-right touch-manipulation py-1'
+                            >
+                              {lead.phone}
+                            </a>
+                          ) : (
+                            <span className='text-sm text-muted-foreground text-right'>
+                              -
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Job Title */}
+                      <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                        <User className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                        <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                          <span className='text-xs text-muted-foreground flex-shrink-0'>
+                            Job Title
+                          </span>
+                          <span className='text-sm text-foreground text-right truncate'>
+                            {lead?.job_title || '-'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Quality Rank */}
+                      {lead?.quality_rank && (
+                        <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                          <Zap className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                          <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                            <span className='text-xs text-muted-foreground flex-shrink-0'>
+                              Quality
+                            </span>
+                            <div className='text-right'>
+                              {(() => {
+                                const quality = lead.quality_rank;
+                                const variants = {
+                                  hot: {
+                                    icon: Flame,
+                                    className:
+                                      'bg-destructive/10 text-destructive border-destructive/20',
+                                  },
+                                  warm: {
+                                    icon: Zap,
+                                    className:
+                                      'bg-warning/10 text-warning border-warning/20',
+                                  },
+                                  cold: {
+                                    icon: Snowflake,
+                                    className:
+                                      'bg-muted text-muted-foreground border-border',
+                                  },
+                                };
+                                const variant =
+                                  variants[quality] || variants.warm;
+                                const Icon = variant.icon;
+
+                                return (
+                                  <Badge
+                                    variant='outline'
+                                    className={variant.className}
+                                  >
+                                    <Icon className='h-3 w-3 mr-1' />
+                                    {quality.charAt(0).toUpperCase() +
+                                      quality.slice(1)}
+                                  </Badge>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
                       )}
-                    </div>
-                  </div>
 
-                  {/* Phone - larger touch target on mobile */}
-                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                    <Phone className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        Phone
-                      </span>
-                      {lead?.phone ? (
-                        <a
-                          href={`tel:${lead.phone}`}
-                          className='text-sm text-primary hover:text-primary active:opacity-70 underline text-right touch-manipulation py-1'
-                        >
-                          {lead.phone}
-                        </a>
-                      ) : (
-                        <span className='text-sm text-muted-foreground text-right'>
-                          -
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                      {/* Status */}
+                      <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                        <Target className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                        <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                          <span className='text-xs text-muted-foreground flex-shrink-0'>
+                            Status
+                          </span>
+                          <div className='text-right'>
+                            {lead?.status ? (
+                              (() => {
+                                const status = lead.status || 'processing';
+                                const statusColors = {
+                                  processing: 'bg-muted text-muted-foreground',
+                                  active: 'bg-success/10 text-success',
+                                  replied_manual: 'bg-primary/10 text-primary',
+                                };
+                                return (
+                                  <Badge
+                                    variant='outline'
+                                    className={`text-xs ${
+                                      statusColors[
+                                        status as keyof typeof statusColors
+                                      ] || statusColors.processing
+                                    }`}
+                                  >
+                                    {getStatusDisplayText(status)}
+                                  </Badge>
+                                );
+                              })()
+                            ) : (
+                              <span className='text-sm text-muted-foreground'>
+                                -
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
-                  {/* Job Title */}
-                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                    <User className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        Job Title
-                      </span>
-                      <span className='text-sm text-foreground text-right truncate'>
-                        {lead?.job_title || '-'}
-                      </span>
-                    </div>
-                  </div>
+                      {/* Show */}
+                      <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                        <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                        <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                          <span className='text-xs text-muted-foreground flex-shrink-0'>
+                            Show
+                          </span>
+                          <div className='text-right flex-1 max-w-[200px]'>
+                            <ShowSelector
+                              value={lead?.show_id || null}
+                              onValueChange={async showId => {
+                                if (!leadId) return;
+                                try {
+                                  await updateLead(leadId, { show_id: showId });
+                                  await fetchLeadDetails();
+                                  onUpdate?.();
+                                  toast({
+                                    title: 'Success',
+                                    description: 'Show updated successfully',
+                                  });
+                                } catch (error) {
+                                  toast({
+                                    title: 'Error',
+                                    description:
+                                      error instanceof Error
+                                        ? error.message
+                                        : 'Failed to update show',
+                                    variant: 'destructive',
+                                  });
+                                }
+                              }}
+                              className='w-full'
+                            />
+                          </div>
+                        </div>
+                      </div>
 
-                  {/* Quality Rank */}
-                  {lead?.quality_rank && (
-                    <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                      <Zap className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                      <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                        <span className='text-xs text-muted-foreground flex-shrink-0'>
-                          Quality
-                        </span>
-                        <div className='text-right'>
-                          {(() => {
-                            const quality = lead.quality_rank;
-                            const variants = {
-                              hot: {
-                                icon: Flame,
-                                className:
-                                  'bg-destructive/10 text-destructive border-destructive/20',
-                              },
-                              warm: {
-                                icon: Zap,
-                                className:
-                                  'bg-warning/10 text-warning border-warning/20',
-                              },
-                              cold: {
-                                icon: Snowflake,
-                                className:
-                                  'bg-muted text-muted-foreground border-border',
-                              },
-                            };
-                            const variant = variants[quality] || variants.warm;
-                            const Icon = variant.icon;
-
-                            return (
-                              <Badge
-                                variant='outline'
-                                className={variant.className}
-                              >
-                                <Icon className='h-3 w-3 mr-1' />
-                                {quality.charAt(0).toUpperCase() +
-                                  quality.slice(1)}
-                              </Badge>
-                            );
-                          })()}
+                      {/* Created */}
+                      <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
+                        <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
+                        <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
+                          <span className='text-xs text-muted-foreground flex-shrink-0'>
+                            Created
+                          </span>
+                          <span className='text-sm text-foreground text-right'>
+                            {lead?.created_at
+                              ? formatDistanceToNow(new Date(lead.created_at), {
+                                  addSuffix: true,
+                                })
+                              : '-'}
+                          </span>
                         </div>
                       </div>
                     </div>
-                  )}
-
-                  {/* Status */}
-                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                    <Target className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        Status
-                      </span>
-                      <div className='text-right'>
-                        {lead?.status ? (
-                          (() => {
-                            const status = lead.status || 'processing';
-                            const statusColors = {
-                              processing: 'bg-muted text-muted-foreground',
-                              active: 'bg-success/10 text-success',
-                              replied_manual: 'bg-primary/10 text-primary',
-                            };
-                            return (
-                              <Badge
-                                variant='outline'
-                                className={`text-xs ${
-                                  statusColors[
-                                    status as keyof typeof statusColors
-                                  ] || statusColors.processing
-                                }`}
-                              >
-                                {getStatusDisplayText(status)}
-                              </Badge>
-                            );
-                          })()
-                        ) : (
-                          <span className='text-sm text-muted-foreground'>
-                            -
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Show */}
-                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                    <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        Show
-                      </span>
-                      <div className='text-right flex-1 max-w-[200px]'>
-                        <ShowSelector
-                          value={lead?.show_id || null}
-                          onValueChange={async showId => {
-                            if (!leadId) return;
-                            try {
-                              await updateLead(leadId, { show_id: showId });
-                              await fetchLeadDetails();
-                              onUpdate?.();
-                              toast({
-                                title: 'Success',
-                                description: 'Show updated successfully',
-                              });
-                            } catch (error) {
-                              toast({
-                                title: 'Error',
-                                description:
-                                  error instanceof Error
-                                    ? error.message
-                                    : 'Failed to update show',
-                                variant: 'destructive',
-                              });
-                            }
-                          }}
-                          className='w-full'
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Created */}
-                  <div className='flex items-center gap-2 lg:gap-3 py-1 lg:py-0'>
-                    <Calendar className='h-4 w-4 text-muted-foreground flex-shrink-0' />
-                    <div className='flex-1 flex items-center justify-between gap-2 lg:gap-4 min-w-0'>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        Created
-                      </span>
-                      <span className='text-sm text-foreground text-right'>
-                        {lead?.created_at
-                          ? formatDistanceToNow(new Date(lead.created_at), {
-                              addSuffix: true,
-                            })
-                          : '-'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             </div>
           </div>

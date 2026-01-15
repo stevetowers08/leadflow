@@ -10,6 +10,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
@@ -188,31 +195,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
+    <div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm'>
       <div className='w-full max-w-md'>
-        <Card className='bg-white shadow-xl border-0 rounded-xl'>
+        <Card className='shadow-xl border-0 rounded-xl'>
           <CardHeader className='text-center pb-6'>
-            <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sidebar-primary/10'>
-              <Shield className='h-6 w-6 text-sidebar-primary' />
+            <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted'>
+              <Shield className='h-6 w-6 text-muted-foreground' />
             </div>
-            <CardTitle className='text-lg font-semibold text-foreground'>
-              {title}
-            </CardTitle>
-            <CardDescription className='text-muted-foreground'>
-              {description}
-            </CardDescription>
+            <CardTitle className='text-lg font-semibold'>{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
           </CardHeader>
 
           <CardContent className='px-8 pb-8'>
             {/* Error Alert */}
             {error && (
-              <Alert
-                variant='destructive'
-                className='mb-6 border-red-200 bg-destructive/10'
-              >
-                <AlertDescription className='text-destructive'>
-                  {error}
-                </AlertDescription>
+              <Alert variant='destructive' className='mb-6'>
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
@@ -229,7 +227,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Button
                     onClick={handleGoogleSignIn}
                     variant='outline'
-                    className='w-full h-10 font-medium text-foreground hover:bg-muted border-border rounded-md flex items-center justify-center'
+                    className='w-full h-10 font-medium'
                     disabled={loading !== null}
                   >
                     {loading === 'google' ? (
@@ -269,7 +267,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <div className='w-full border-t border-border'></div>
                   </div>
                   <div className='relative flex justify-center text-sm'>
-                    <span className='px-2 bg-white text-muted-foreground'>
+                    <span className='px-2 bg-card text-muted-foreground'>
                       or
                     </span>
                   </div>
@@ -278,31 +276,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {/* Email/Password Form */}
                 <form onSubmit={handleEmailSignIn} className='space-y-4'>
                   <div className='space-y-2'>
-                    <Label
-                      htmlFor='signin-email'
-                      className='text-sm font-medium text-foreground'
-                    >
-                      Email address
-                    </Label>
+                    <Label htmlFor='signin-email'>Email address</Label>
                     <Input
                       id='signin-email'
                       type='email'
                       placeholder='Enter your email'
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className='h-10 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                       disabled={loading !== null}
                       required
                     />
                   </div>
 
                   <div className='space-y-2'>
-                    <Label
-                      htmlFor='signin-password'
-                      className='text-sm font-medium text-foreground'
-                    >
-                      Password
-                    </Label>
+                    <Label htmlFor='signin-password'>Password</Label>
                     <div className='relative'>
                       <Input
                         id='signin-password'
@@ -310,14 +297,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         placeholder='Enter your password'
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        className='h-10 pr-12 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
+                        className='pr-12'
                         disabled={loading !== null}
                         required
                       />
                       <button
                         type='button'
                         onClick={() => setShowPassword(!showPassword)}
-                        className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground'
+                        className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground'
                         disabled={loading !== null}
                       >
                         {showPassword ? (
@@ -332,7 +319,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className='flex items-center justify-start'>
                     <button
                       type='button'
-                      className='text-sm text-sidebar-primary hover:text-sidebar-primary/80 font-medium'
+                      className='text-sm text-muted-foreground hover:text-foreground font-medium'
                       disabled={loading !== null}
                     >
                       Forgot password?
@@ -341,7 +328,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                   <Button
                     type='submit'
-                    className='w-full h-10 bg-sidebar-primary hover:bg-sidebar-primary/90 text-white font-medium rounded-md'
+                    className='w-full h-10'
                     disabled={loading !== null}
                   >
                     {loading === 'email' ? (
@@ -363,7 +350,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Button
                     onClick={handleGoogleSignIn}
                     variant='outline'
-                    className='w-full h-10 font-medium text-foreground hover:bg-muted border-border rounded-md flex items-center justify-center'
+                    className='w-full h-10 font-medium'
                     disabled={loading !== null}
                   >
                     {loading === 'google' ? (
@@ -403,7 +390,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <div className='w-full border-t border-border'></div>
                   </div>
                   <div className='relative flex justify-center text-sm'>
-                    <span className='px-2 bg-white text-muted-foreground'>
+                    <span className='px-2 bg-card text-muted-foreground'>
                       or
                     </span>
                   </div>
@@ -412,48 +399,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {/* Sign Up Form */}
                 <form onSubmit={handleEmailSignUp} className='space-y-4'>
                   <div className='space-y-2'>
-                    <Label
-                      htmlFor='signup-name'
-                      className='text-sm font-medium text-foreground'
-                    >
-                      Full Name *
-                    </Label>
+                    <Label htmlFor='signup-name'>Full Name *</Label>
                     <Input
                       id='signup-name'
                       type='text'
                       placeholder='Enter your full name'
                       value={fullName}
                       onChange={e => setFullName(e.target.value)}
-                      className='h-10 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                       disabled={loading !== null}
                       required
                     />
                   </div>
 
                   <div className='space-y-2'>
-                    <Label
-                      htmlFor='signup-email'
-                      className='text-sm font-medium text-foreground'
-                    >
-                      Email Address *
-                    </Label>
+                    <Label htmlFor='signup-email'>Email Address *</Label>
                     <Input
                       id='signup-email'
                       type='email'
                       placeholder='Enter your email'
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className='h-10 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                       disabled={loading !== null}
                       required
                     />
                   </div>
 
                   <div className='space-y-2'>
-                    <Label
-                      htmlFor='signup-headline'
-                      className='text-sm font-medium text-foreground'
-                    >
+                    <Label htmlFor='signup-headline'>
                       Professional Headline
                     </Label>
                     <Input
@@ -462,40 +434,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       placeholder='e.g., Senior Software Engineer'
                       value={headline}
                       onChange={e => setHeadline(e.target.value)}
-                      className='h-10 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
                       disabled={loading !== null}
                     />
                   </div>
 
                   <div className='space-y-2'>
-                    <Label
-                      htmlFor='signup-role'
-                      className='text-sm font-medium text-foreground'
-                    >
-                      Role
-                    </Label>
-                    <select
-                      id='signup-role'
+                    <Label htmlFor='signup-role'>Role</Label>
+                    <Select
                       value={role}
-                      onChange={e =>
-                        setRole(e.target.value as 'mentor' | 'mentee' | 'both')
+                      onValueChange={(value: 'mentor' | 'mentee' | 'both') =>
+                        setRole(value)
                       }
-                      className='w-full h-10 px-3 border border-border rounded-md focus:border-sidebar-primary focus:ring-sidebar-primary'
                       disabled={loading !== null}
                     >
-                      <option value='both'>Both Mentor &amp; Mentee</option>
-                      <option value='mentor'>Mentor</option>
-                      <option value='mentee'>Mentee</option>
-                    </select>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select a role' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='both'>
+                          Both Mentor &amp; Mentee
+                        </SelectItem>
+                        <SelectItem value='mentor'>Mentor</SelectItem>
+                        <SelectItem value='mentee'>Mentee</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className='space-y-2'>
-                    <Label
-                      htmlFor='signup-password'
-                      className='text-sm font-medium text-foreground'
-                    >
-                      Password *
-                    </Label>
+                    <Label htmlFor='signup-password'>Password *</Label>
                     <div className='relative'>
                       <Input
                         id='signup-password'
@@ -503,14 +469,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         placeholder='Create a password'
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        className='h-10 pr-12 border-border focus:border-sidebar-primary focus:ring-sidebar-primary rounded-md'
+                        className='pr-12'
                         disabled={loading !== null}
                         required
                       />
                       <button
                         type='button'
                         onClick={() => setShowPassword(!showPassword)}
-                        className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground'
+                        className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground'
                         disabled={loading !== null}
                       >
                         {showPassword ? (
@@ -524,7 +490,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                   <Button
                     type='submit'
-                    className='w-full h-10 bg-sidebar-primary hover:bg-sidebar-primary/90 text-white font-medium rounded-md'
+                    className='w-full h-10'
                     disabled={loading !== null}
                   >
                     {loading === 'signup' ? (

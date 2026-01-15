@@ -73,17 +73,17 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
   const getStageColor = (stage?: string | null) => {
     switch (stage?.toLowerCase()) {
       case 'new_lead':
-        return 'bg-blue-100 text-primary border-primary/20';
+        return 'bg-info-light text-primary border-primary/20';
       case 'automated':
-        return 'bg-green-100 text-success border-green-200';
+        return 'bg-success-light text-success border-success/20';
       case 'meeting_scheduled':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-warning-light text-warning-dark border-warning/20';
       case 'closed_won':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+        return 'bg-success-light text-success-dark border-success/20';
       case 'closed_lost':
-        return 'bg-red-100 text-destructive border-red-200';
+        return 'bg-error-light text-destructive border-destructive/20';
       default:
-        return 'bg-gray-100 text-foreground border-border';
+        return 'bg-muted text-foreground border-border';
     }
   };
 
@@ -103,7 +103,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
       >
         <div className='flex items-center gap-3'>
           {/* Company Logo Only */}
-          <div className='flex-shrink-0 w-8 h-8 rounded-md border border-border bg-white flex items-center justify-center'>
+          <div className='flex-shrink-0 w-8 h-8 rounded-md border border-border bg-card flex items-center justify-center'>
             {getCompanyLogo(company) ? (
               <img
                 src={getCompanyLogo(company)!}
@@ -132,7 +132,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
           {/* Stage, Employee Count and Notes */}
           <div className='flex items-center gap-2 flex-shrink-0'>
             {company.employee_count && (
-              <div className='flex items-center gap-1 text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded-full'>
+              <div className='flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full'>
                 <Users className='h-3 w-3' />
                 <span>{formatEmployeeCount(company.employee_count)}</span>
               </div>
@@ -167,9 +167,9 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
           <div className='space-y-3'>
             {[...Array(3)].map((_, i) => (
               <div key={i} className='p-4 bg-muted rounded-lg animate-pulse'>
-                <div className='h-4 bg-gray-200 rounded w-3/4 mb-2'></div>
-                <div className='h-3 bg-gray-200 rounded w-1/2 mb-1'></div>
-                <div className='h-3 bg-gray-200 rounded w-2/3'></div>
+                <div className='h-4 bg-muted-foreground/20 rounded w-3/4 mb-2'></div>
+                <div className='h-3 bg-muted-foreground/20 rounded w-1/2 mb-1'></div>
+                <div className='h-3 bg-muted-foreground/20 rounded w-2/3'></div>
               </div>
             ))}
           </div>
@@ -198,7 +198,7 @@ export const RecentCompaniesTabs: React.FC<RecentCompaniesTabsProps> = ({
     <>
       <Card
         className={cn(
-          'bg-white',
+          'bg-card',
           designTokens.shadows.cardStatic,
           designTokens.shadows.cardHover,
           designTokens.borders.card

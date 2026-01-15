@@ -17,10 +17,14 @@ import {
   Users,
   MoreHorizontal,
   Camera,
+  Calendar,
+  Building2,
+  BarChart3,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface NavItem {
   to: string;
@@ -47,9 +51,25 @@ const allNavItems: NavItem[] = [
     isPrimary: true,
   },
   {
+    to: '/companies',
+    label: 'Companies',
+    icon: <Building2 className='h-5 w-5' />,
+    isPrimary: true,
+  },
+  {
+    to: '/shows',
+    label: 'Shows',
+    icon: <Calendar className='h-5 w-5' />,
+  },
+  {
     to: '/workflows',
     label: 'Campaigns',
     icon: <GitMerge className='h-5 w-5' />,
+  },
+  {
+    to: '/analytics',
+    label: 'Analytics',
+    icon: <BarChart3 className='h-5 w-5' />,
   },
   {
     to: '/settings',
@@ -66,6 +86,8 @@ interface MobileNavProps {
 export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
   const pathname = usePathname();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ bottom: 0, left: 0 });
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
   const isMobile = useIsMobile();
   const { lightHaptic, mediumHaptic } = useHapticFeedback();
   const { canView } = usePermissions();
@@ -82,21 +104,32 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
     return { primaryItems: primary, secondaryItems: secondary };
   }, [canView]);
 
+  // Calculate menu position when opening
+  useEffect(() => {
+    if (showMoreMenu && moreButtonRef.current) {
+      const rect = moreButtonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        bottom: window.innerHeight - rect.top + 8,
+        left: rect.left + rect.width / 2,
+      });
+    }
+  }, [showMoreMenu]);
+
   // Close more menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showMoreMenu) {
-        const moreButton = document.querySelector('[data-more-button]');
-        const moreMenu = document.querySelector('[data-more-menu]');
+    if (!showMoreMenu) return;
 
-        if (
-          moreButton &&
-          !moreButton.contains(event.target as Node) &&
-          moreMenu &&
-          !moreMenu.contains(event.target as Node)
-        ) {
-          setShowMoreMenu(false);
-        }
+    const handleClickOutside = (event: MouseEvent) => {
+      const moreButton = document.querySelector('[data-more-button]');
+      const moreMenu = document.querySelector('[data-more-menu]');
+
+      if (
+        moreButton &&
+        !moreButton.contains(event.target as Node) &&
+        moreMenu &&
+        !moreMenu.contains(event.target as Node)
+      ) {
+        setShowMoreMenu(false);
       }
     };
 
@@ -120,7 +153,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
       {/* Bottom Navigation Bar - 2025 Enhanced */}
       <nav
         className={cn(
-          'fixed bottom-0 inset-x-0 z-30 bg-background',
+          'fixed bottom-0 inset-x-0 z-[95] bg-background',
           'border-t border-border lg:hidden',
           'shadow-[0_-4px_20px_rgba(0,0,0,0.08)]',
           'safe-area-pb', // Safe area padding for devices with home indicators
@@ -188,7 +221,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
           {/* More Menu Button */}
           <div className='relative flex-1'>
             <button
-              onClick={() => {
+              ref={moreButtonRef}
+              onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
                 mediumHaptic();
                 setShowMoreMenu(!showMoreMenu);
               }}
@@ -205,6 +241,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
               data-more-button
               aria-label='More options'
               aria-expanded={showMoreMenu}
+              aria-haspopup='true'
             >
               <div
                 className={cn(
@@ -229,59 +266,72 @@ export const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
               )}
             </button>
 
-            {/* More Menu Dropdown - Fixed positioning to prevent cut-off */}
-            {showMoreMenu && (
-              <div
-                className='fixed left-1/2 -translate-x-1/2 w-72 bg-background border border-border rounded-2xl shadow-xl z-[100] animate-in fade-in slide-in-from-bottom-2 duration-200 overflow-hidden'
-                data-more-menu
-                role='menu'
-                aria-label='Additional navigation options'
-                onClick={e => e.stopPropagation()}
-                style={{
-                  maxHeight: 'calc(100vh - 160px)',
-                  bottom: `calc(100% + 8px + env(safe-area-inset-bottom, 0px))`,
-                }}
-              >
-                <div className='py-2 max-h-[60vh] overflow-y-auto overscroll-contain'>
-                  <div className='px-4 py-2.5 border-b border-border'>
-                    <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
-                      More Options
-                    </h3>
+            {/* More Menu Dropdown - Portal for reliable positioning */}
+            {showMoreMenu &&
+              typeof window !== 'undefined' &&
+              createPortal(
+                <div
+                  className='fixed w-72 bg-background border border-border rounded-2xl shadow-xl z-[100] overflow-hidden'
+                  data-more-menu
+                  role='menu'
+                  aria-label='Additional navigation options'
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    bottom: `${menuPosition.bottom}px`,
+                    left: `${menuPosition.left}px`,
+                    transform: 'translateX(-50%)',
+                    maxHeight: 'calc(100vh - 200px)',
+                  }}
+                >
+                  <div className='py-2 max-h-[60vh] overflow-y-auto'>
+                    {secondaryItems.length > 0 ? (
+                      <>
+                        <div className='px-4 py-2.5 border-b border-border'>
+                          <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wide'>
+                            More Options
+                          </h3>
+                        </div>
+                        <div className='py-1'>
+                          {secondaryItems.map(item => {
+                            const isActive = pathname === item.to;
+                            return (
+                              <Link
+                                key={item.to}
+                                href={item.to}
+                                onClick={() => {
+                                  lightHaptic();
+                                  setShowMoreMenu(false);
+                                }}
+                                className={cn(
+                                  'flex items-center gap-3 px-4 py-3 min-h-[48px]',
+                                  'transition-colors duration-150',
+                                  'touch-manipulation',
+                                  isActive
+                                    ? 'text-primary bg-primary/5'
+                                    : 'text-foreground hover:bg-accent'
+                                )}
+                                role='menuitem'
+                              >
+                                <div className='flex-shrink-0 h-5 w-5'>
+                                  {item.icon}
+                                </div>
+                                <span className='text-sm font-medium'>
+                                  {item.label}
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : (
+                      <div className='px-4 py-3 text-sm text-muted-foreground text-center'>
+                        No additional options
+                      </div>
+                    )}
                   </div>
-                  <div className='py-1'>
-                    {secondaryItems.map(item => {
-                      const isActive = pathname === item.to;
-                      return (
-                        <Link
-                          key={item.to}
-                          href={item.to}
-                          onClick={() => {
-                            lightHaptic();
-                            setShowMoreMenu(false);
-                          }}
-                          className={cn(
-                            'flex items-center gap-3 px-4 py-3 min-h-[48px]',
-                            'transition-all duration-150 active:scale-[0.98]',
-                            'touch-manipulation',
-                            isActive
-                              ? 'text-primary bg-primary/5'
-                              : 'text-foreground'
-                          )}
-                          role='menuitem'
-                        >
-                          <div className='flex-shrink-0 h-5 w-5'>
-                            {item.icon}
-                          </div>
-                          <span className='text-sm font-medium'>
-                            {item.label}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
+                </div>,
+                document.body
+              )}
           </div>
         </div>
       </nav>
